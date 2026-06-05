@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chart.js Dashboard</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="logo">📊</div>
+      <nav>
+        <a href="index.html" class="active">Dashboard</a>
+        <a href="about.html">About</a>
+      </nav>
+    </aside>
+    <main>
+      <h1>Monthly Revenue</h1>
+      <div class="chart-container">
+        <canvas id="revenueChart" width="600" height="300"></canvas>
+      </div>
+      <div class="stats" id="stats">
+        <div class="stat">
+          <span class="label">Total</span>
+          <span class="value" id="totalValue">—</span>
+        </div>
+        <div class="stat">
+          <span class="label">Average</span>
+          <span class="value" id="avgValue">—</span>
+        </div>
+      </div>
+    </main>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

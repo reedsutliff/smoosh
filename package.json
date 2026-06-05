@@ -11,7 +11,12 @@
     "lib/"
   ],
   "scripts": {
-    "test": "node --test test/tests.mjs"
+    "test": "node --test test/tests.mjs",
+    "test:integration": "node --test test/integration.mjs",
+    "test:all": "node --test test/tests.mjs test/integration.mjs"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "playwright": "^1.60.0"
+  }
 }

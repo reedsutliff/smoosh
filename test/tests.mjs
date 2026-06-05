@@ -412,3 +412,129 @@ describe('return value shape', () => {
     assert.ok('warnings' in result);
   });
 });
+
+// ============================================================================
+// Edge case warnings (unsupported patterns produce clear warnings)
+// ============================================================================
+
+describe('edge case warnings', () => {
+  it('warns on iframes', async () => {
+    const dir = join(TMP, '_warn-iframe');
+    mkdirSync(dir, { recursive: true });
+    writeFileSync(join(dir, 'index.html'), `<!DOCTYPE html>
+<html><head><title>Iframe</title></head>
+<body><iframe src="other.html"></iframe></body></html>`);
+    const result = await smoosh(dir, { validateOnly: true });
+    assert.ok(result.warnings.some(w => w.message.includes('iframe')));
+  });
+
+  it('warns on absolute paths', async () => {
+    const dir = join(TMP, '_warn-absolute');
+    mkdirSync(dir, { recursive: true });
+    writeFileSync(join(dir, 'index.html'), `<!DOCTYPE html>
+<html><head><title>Absolute</title>
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body></body></html>`);
+    const result = await smoosh(dir, { validateOnly: true });
+    assert.ok(result.warnings.some(w => w.message.includes('Absolute path')));
+  });
+
+  it('warns on <base> tag', async () => {
+    const dir = join(TMP, '_warn-base');
+    mkdirSync(dir, { recursive: true });
+    writeFileSync(join(dir, 'index.html'), `<!DOCTYPE html>
+<html><head><title>Base</title>
+<base href="https://example.com/">
+</head>
+<body></body></html>`);
+    const result = await smoosh(dir, { validateOnly: true });
+    assert.ok(result.warnings.some(w => w.message.includes('base')));
+  });
+
+  it('warns on srcset URLs', async () => {
+    const dir = join(TMP, '_warn-srcset');
+    mkdirSync(dir, { recursive: true });
+    writeFileSync(join(dir, 'index.html'), `<!DOCTYPE html>
+<html><head><title>Srcset</title></head>
+<body><img src="a.png" srcset="b.png 2x" alt="test"></body></html>`);
+    writeFileSync(join(dir, 'a.png'), Buffer.alloc(10));
+    writeFileSync(join(dir, 'b.png'), Buffer.alloc(10));
+    const result = await smoosh(dir, { validateOnly: true });
+    assert.ok(result.warnings.some(w => w.message.includes('srcset')));
+  });
+
+  it('warns on CSS @import', async () => {
+    const dir = join(TMP, '_warn-import');
+    mkdirSync(dir, { recursive: true });
+    writeFileSync(join(dir, 'base.css'), `@import "extra.css";\nbody { color: red; }`);
+    writeFileSync(join(dir, 'extra.css'), `h1 { font-size: 2em; }`);
+    writeFileSync(join(dir, 'index.html'), `<!DOCTYPE html>
+<html><head><title>Import</title>
+<link rel="stylesheet" href="base.css">
+</head>
+<body></body></html>`);
+    const result = await smoosh(dir, { validateOnly: true });
+    assert.ok(result.warnings.some(w => w.message.includes('@import')));
+  });
+
+  it('warns on <embed>', async () => {
+    const dir = join(TMP, '_warn-embed');
+    mkdirSync(dir, { recursive: true });
+    writeFileSync(join(dir, 'index.html'), `<!DOCTYPE html>
+<html><head><title>Embed</title></head>
+<body><embed src="doc.pdf"></body></html>`);
+    const result = await smoosh(dir, { validateOnly: true });
+    assert.ok(result.warnings.some(w => w.message.includes('embed')));
+  });
+
+  it('warns on importmap scripts', async () => {
+    const dir = join(TMP, '_warn-importmap');
+    mkdirSync(dir, { recursive: true });
+    writeFileSync(join(dir, 'index.html'), `<!DOCTYPE html>
+<html><head><title>Importmap</title></head>
+<body>
+<script type="importmap" src="map.json"></script>
+</body></html>`);
+    writeFileSync(join(dir, 'map.json'), '{}');
+    const result = await smoosh(dir, { validateOnly: true });
+    assert.ok(result.warnings.some(w => w.message.includes('importmap')));
+  });
+
+  it('warns on manifest link', async () => {
+    const dir = join(TMP, '_warn-manifest');
+    mkdirSync(dir, { recursive: true });
+    writeFileSync(join(dir, 'index.html'), `<!DOCTYPE html>
+<html><head><title>Manifest</title>
+<link rel="manifest" href="app.webmanifest">
+</head>
+<body></body></html>`);
+    const result = await smoosh(dir, { validateOnly: true });
+    assert.ok(result.warnings.some(w => w.message.includes('manifest')));
+  });
+
+  it('warns on unknown link types', async () => {
+    const dir = join(TMP, '_warn-link');
+    mkdirSync(dir, { recursive: true });
+    writeFileSync(join(dir, 'index.html'), `<!DOCTYPE html>
+<html><head><title>Link</title>
+<link href="feed.xml" rel="alternate" type="application/rss+xml">
+</head>
+<body></body></html>`);
+    const result = await smoosh(dir, { validateOnly: true });
+    assert.ok(result.warnings.some(w => w.message.includes('not supported')));
+  });
+
+  it('warns on preload (resource still inlined)', async () => {
+    const dir = join(TMP, '_warn-preload');
+    mkdirSync(dir, { recursive: true });
+    writeFileSync(join(dir, 'style.css'), `body { color: red; }`);
+    writeFileSync(join(dir, 'index.html'), `<!DOCTYPE html>
+<html><head><title>Preload</title>
+<link rel="preload" href="style.css" as="style">
+</head>
+<body></body></html>`);
+    const result = await smoosh(dir, { validateOnly: true });
+    assert.ok(result.warnings.some(w => w.message.includes('preload')));
+  });
+});

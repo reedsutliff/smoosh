@@ -1,6 +1,8 @@
 node_modules/
 test/out/
 tmp-test/
+tmp-int/
 *.html
 !test/fixtures/**/*.html
+!test/integration/**/*.html
 .github/
