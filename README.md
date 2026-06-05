@@ -1,55 +1,96 @@
-# smoosh
+# smoosh-cli
 
-Bundle a folder of HTML pages into a single self-contained HTML file with simulated routing.
+**Bundle a local HTML site into a single self-contained file — ready to share.**
 
-## Problem
+Send one file. No zip, no server, no extraction.
 
-You have a static site with multiple HTML pages that share JavaScript — something like:
+A developer or agent builds an interactive HTML mockup, a data visualisation, or a dashboard. You want to share it with someone. Instead of zipping up a folder or standing up a server, just run:
 
-```
-site/
-├── index.html     ← links to my-page.html
-├── my-page.html   ← links back to index.html
-└── myjs.js        ← imported by both pages
+```bash
+npx smoosh-cli ./my-mockup.html
 ```
 
-You want to ship it as a single HTML file — no server, no file-access restrictions, just one file that works when opened locally or embedded.
+Out comes a single `index.html` — everything inlined, nothing missing. Open it in any browser, send it as an email attachment, put it on a shared drive. Works offline, zero dependencies.
 
-## How it works
+## Install
 
-`smoosh` scans your input directory, collects every HTML and JS file, then produces **one HTML file** that contains:
-
-- All JS files inlined as `<script>` blocks
-- All HTML pages stored as hidden `<template>` elements
-- A lightweight JavaScript runtime that provides:
-  - **Hash-based routing** — links are rewritten to `#page-name` navigation
-  - **On-demand script loading** — each page can declare which JS modules it needs
-  - **History API integration** — back/forward works naturally
+```bash
+npm install -g smoosh-cli
+# or use directly:
+npx smoosh-cli ./my-site
+```
 
 ## Usage
 
 ```bash
-npx smoosh ./my-site          # outputs ./dist/index.html
-npx smoosh ./my-site -o out   # outputs ./out/index.html
+smoosh-cli <input> [options]
 ```
+
+| Argument | Description |
+|----------|-------------|
+| `<input>` | HTML file or directory to bundle |
+
+| Option | Description |
+|--------|-------------|
+| `-o, --output <path>` | Output file path (default: `./dist/index.html`) |
+| `--remote` | Fetch and inline remote/CDN resources for offline use |
+| `--validate-only` | Scan for unbundled references without producing output |
+
+### Examples
+
+```bash
+# Bundle a single HTML mockup
+smoosh-cli ./agent-built-mockup.html
+
+# Bundle an entire static site directory
+smoosh-cli ./my-site
+
+# Specify output path
+smoosh-cli ./dashboard.html -o ~/Desktop/share.html
+
+# Also fetch CDN scripts for offline use
+smoosh-cli ./site --remote
+
+# Check that everything's covered (no output)
+smoosh-cli ./site --validate-only
+```
+
+## What it does
+
+1. **Scans** your HTML for all local dependencies: scripts, stylesheets, images, fonts, icons, SVG favicons, even `url()` references inside CSS
+2. **Inlines** them all — JS and CSS become embedded `<script>`/`<style>` blocks, binary assets (images, fonts) become data URIs
+3. **Validates** that every local file was found and inlined — warns about anything missed
+4. **Handles multi-page sites** — cross-page links are rewritten to hash-based navigation (everything still live in one file)
+5. **Optional remote bundling** — `--remote` fetches CDN scripts and styles for fully offline operation
 
 ## Example
 
-Given an input folder:
+A typical mockup folder:
 
 ```
-my-site/
-├── index.html        ← <script src="myjs.js">, <a href="my-page.html">
-├── my-page.html      ← <script src="myjs.js">
-└── myjs.js           ← function greet(name) { ... }
+my-mockup/
+├── index.html     ← links to styles.css, app.js, favicon.svg
+├── styles.css     ← references background.png via url()
+├── app.js
+├── favicon.svg
+├── analytics.html ← alternate page linked from index.html
+└── settings.html  ← alternate page linked from index.html
 ```
 
-Running `smoosh my-site` produces a single `index.html` where:
+Running `smoosh-cli my-mockup` produces a single `index.html` where every asset is inlined. All local paths are resolved. Open it anywhere.
 
-- Clicking the link to `my-page.html` navigates via hash (`#my-page`)
-- `myjs.js` is loaded once and shared across all pages
-- The URL bar updates so bookmarking works
-- No server needed — open the file directly in any browser
+## Publishing
+
+Tag a release and push to trigger the GitHub Actions publish workflow:
+
+```bash
+npm version patch
+git push --follow-tags
+```
+
+Requires an `NPM_TOKEN` secret in the repo's GitHub settings
+(create at https://www.npmjs.com/settings/<username>/tokens,
+Automation type — no OTP needed for CI).
 
 ## License
 

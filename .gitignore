@@ -1,4 +1,4 @@
 node_modules/
 test/out/
 *.html
-!test/fixtures/
+!test/fixtures/*.html
