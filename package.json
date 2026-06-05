@@ -1,0 +1,14 @@
+{
+  "name": "smoosh",
+  "version": "0.1.0",
+  "description": "Bundle a folder of HTML pages into a single self-contained HTML file with simulated routing",
+  "type": "module",
+  "bin": {
+    "smoosh": "./bin/smoosh.js"
+  },
+  "files": [
+    "bin/",
+    "lib/"
+  ],
+  "license": "MIT"
+}
