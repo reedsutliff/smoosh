@@ -1,5 +1,6 @@
 node_modules/
 test/out/
+tmp-test/
 *.html
-!test/fixtures/*.html
+!test/fixtures/**/*.html
 .github/

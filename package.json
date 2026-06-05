@@ -10,5 +10,8 @@
     "bin/",
     "lib/"
   ],
+  "scripts": {
+    "test": "node --test test/tests.mjs"
+  },
   "license": "MIT"
 }
